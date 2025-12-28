@@ -134,8 +134,6 @@ export const deleteService = async (req, res) => {
   }
 };
 
-// @desc Update a specific service
-// @route PATCH /api/services/:id/update
 export const updateService = async (req, res) => {
   try {
     const { oldService, newService } = req.body;
