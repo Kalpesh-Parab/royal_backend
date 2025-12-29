@@ -1,12 +1,26 @@
 import Invoice from '../models/Invoice.js';
 
+// helper → current time HH:mm
+const getCurrentTime = () => {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(
+    now.getMinutes()
+  ).padStart(2, '0')}`;
+};
+
 export const createInvoice = async (req, res) => {
   try {
-    const { bikeNumber, categories } = req.body;
+    const { bikeNumber, categories, invoiceDate, timings } = req.body;
 
-    if (!bikeNumber || !categories || categories.length === 0) {
+    if (!bikeNumber || !invoiceDate || !timings?.inTime) {
       return res.status(400).json({
-        message: 'Bike number and at least one category are required',
+        message: 'Bike number, in-date and in-time are required',
+      });
+    }
+
+    if (!categories || categories.length === 0) {
+      return res.status(400).json({
+        message: 'At least one service category is required',
       });
     }
 
@@ -16,13 +30,12 @@ export const createInvoice = async (req, res) => {
       // 🔒 HARD RULE: services are mandatory
       if (!cat.services || cat.services.length === 0) {
         throw new Error(
-          `At least one service must be selected for category "${cat.categoryName}"`
+          `At least one service must be selected for "${cat.categoryName}"`
         );
       }
 
       let categoryTotal = 0;
 
-      // SERVICE-wise pricing
       if (cat.pricingMode === 'SERVICE') {
         categoryTotal = cat.services.reduce(
           (sum, s) => sum + Number(s.price || 0),
@@ -30,12 +43,10 @@ export const createInvoice = async (req, res) => {
         );
       }
 
-      // CATEGORY-wise pricing (services still mandatory!)
       if (cat.pricingMode === 'CATEGORY') {
         if (!cat.categoryPrice || cat.categoryPrice <= 0) {
           throw new Error(`Category price required for "${cat.categoryName}"`);
         }
-
         categoryTotal = Number(cat.categoryPrice);
       }
 
@@ -47,9 +58,15 @@ export const createInvoice = async (req, res) => {
       };
     });
 
+    // ✅ SERVER CONTROLS OUT TIME
     const invoice = await Invoice.create({
       ...req.body,
       bikeNumber: bikeNumber.toUpperCase(),
+      invoiceDate: new Date(invoiceDate), // BIKE IN-DATE
+      timings: {
+        inTime: timings.inTime,
+        outTime: getCurrentTime(), // ⏱️ AUTO
+      },
       categories: processedCategories,
       grandTotal,
     });

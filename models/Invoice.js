@@ -6,7 +6,7 @@ const serviceSchema = new mongoose.Schema({
     required: true,
   },
   price: {
-    type: Number, // admin decides price
+    type: Number,
     default: 0,
   },
 });
@@ -29,19 +29,16 @@ const categorySchema = new mongoose.Schema({
     required: true,
   },
 
-  // ✅ services MUST exist (validated in controller)
   services: {
     type: [serviceSchema],
     required: true,
   },
 
-  // used only when pricingMode === CATEGORY
   categoryPrice: {
     type: Number,
     default: 0,
   },
 
-  // calculated in backend
   categoryTotal: {
     type: Number,
     required: true,
@@ -50,9 +47,10 @@ const categorySchema = new mongoose.Schema({
 
 const invoiceSchema = new mongoose.Schema(
   {
+    // ✅ BIKE IN-DATE (ADMIN SELECTS)
     invoiceDate: {
       type: Date,
-      default: Date.now,
+      required: true,
     },
 
     bikeNumber: {
@@ -75,8 +73,14 @@ const invoiceSchema = new mongoose.Schema(
     },
 
     timings: {
-      inTime: String,
-      outTime: String,
+      inTime: {
+        type: String,
+        required: true,
+      },
+      outTime: {
+        type: String,
+        required: true,
+      },
     },
 
     categories: {
