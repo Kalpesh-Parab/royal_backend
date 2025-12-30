@@ -101,3 +101,38 @@ export const getAllInvoices = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+export const searchInvoices = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    const invoices = await Invoice.find({
+      $or: [
+        { bikeNumber: { $regex: q, $options: 'i' } },
+        { 'owner.mobile': { $regex: q } },
+      ],
+    }).sort({ createdAt: -1 });
+
+    res.json(invoices);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const getInvoiceById = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    res.json(invoice);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
