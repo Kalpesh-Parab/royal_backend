@@ -5,6 +5,8 @@ import {
   getInvoiceById,
   getInvoiceByBikeNumber,
   searchInvoices,
+  updateInvoice,
+  deleteInvoice,
 } from '../controllers/invoiceController.js';
 import { protect } from '../middleware/authMiddleware.js';
 
@@ -25,4 +27,9 @@ router.get('/id/:id', protect, getInvoiceById);
 /* OPTIONAL: latest invoice of a bike */
 router.get('/by-bike/:bikeNumber', protect, getInvoiceByBikeNumber);
 
+// UPDATE
+router.put('/:id', protect, updateInvoice);
+
+/* DELETE */
+router.delete('/:id', protect, deleteInvoice);
 export default router;

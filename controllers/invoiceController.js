@@ -4,7 +4,7 @@ import Invoice from '../models/Invoice.js';
 const getCurrentTime = () => {
   const now = new Date();
   return `${String(now.getHours()).padStart(2, '0')}:${String(
-    now.getMinutes()
+    now.getMinutes(),
   ).padStart(2, '0')}`;
 };
 
@@ -30,7 +30,7 @@ export const createInvoice = async (req, res) => {
       // 🔒 HARD RULE: services are mandatory
       if (!cat.services || cat.services.length === 0) {
         throw new Error(
-          `At least one service must be selected for "${cat.categoryName}"`
+          `At least one service must be selected for "${cat.categoryName}"`,
         );
       }
 
@@ -39,7 +39,7 @@ export const createInvoice = async (req, res) => {
       if (cat.pricingMode === 'SERVICE') {
         categoryTotal = cat.services.reduce(
           (sum, s) => sum + Number(s.price || 0),
-          0
+          0,
         );
       }
 
@@ -134,5 +134,113 @@ export const getInvoiceById = async (req, res) => {
     res.json(invoice);
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+export const updateInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { categories, invoiceDate, owner, bike, timings } = req.body;
+
+    const invoice = await Invoice.findById(id);
+
+    if (!invoice) {
+      return res.status(404).json({ message: 'Invoice not found' });
+    }
+
+    /* ---------------- VALIDATION ---------------- */
+
+    if (!categories || categories.length === 0) {
+      return res
+        .status(400)
+        .json({ message: 'At least one service category is required' });
+    }
+
+    let grandTotal = 0;
+
+    const processedCategories = categories.map((cat) => {
+      if (!cat.services || cat.services.length === 0) {
+        throw new Error(
+          `At least one service must be selected for "${cat.categoryName}"`,
+        );
+      }
+
+      let categoryTotal = 0;
+
+      if (cat.pricingMode === 'SERVICE') {
+        categoryTotal = cat.services.reduce(
+          (sum, s) => sum + Number(s.price || 0),
+          0,
+        );
+      }
+
+      if (cat.pricingMode === 'CATEGORY') {
+        if (!cat.categoryPrice || cat.categoryPrice <= 0) {
+          throw new Error(`Category price required for "${cat.categoryName}"`);
+        }
+        categoryTotal = Number(cat.categoryPrice);
+      }
+
+      grandTotal += categoryTotal;
+
+      return {
+        ...cat,
+        categoryTotal,
+      };
+    });
+
+    /* ---------------- UPDATE ---------------- */
+
+    invoice.categories = processedCategories;
+    invoice.grandTotal = grandTotal;
+
+    if (invoiceDate) {
+      invoice.invoiceDate = new Date(invoiceDate);
+    }
+
+    if (owner) {
+      invoice.owner = owner;
+    }
+
+    if (bike) {
+      invoice.bike = bike;
+    }
+
+    // 🔒 timings rule:
+    // - allow editing inTime
+    // - DO NOT auto-change outTime on edit
+    if (timings?.inTime) {
+      invoice.timings.inTime = timings.inTime;
+    }
+
+    await invoice.save();
+
+    res.json(invoice);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+};
+
+export const deleteInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const invoice = await Invoice.findById(id);
+
+    if (!invoice) {
+      return res.status(404).json({
+        message: 'Invoice not found',
+      });
+    }
+
+    await invoice.deleteOne();
+
+    res.status(200).json({
+      message: 'Invoice deleted successfully',
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
   }
 };
