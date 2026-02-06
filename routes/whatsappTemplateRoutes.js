@@ -4,7 +4,7 @@ import {
   getTemplates,
   updateTemplate,
   deleteTemplate,
-} from '../controllers/whatsappTemplate.controller.js';
+} from '../controllers/whatsappTemplateController.js';
 
 const router = express.Router();
 

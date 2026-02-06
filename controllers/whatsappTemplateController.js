@@ -1,4 +1,4 @@
-import WhatsAppTemplate from '../models/WhatsAppTemplate.model.js';
+import WhatsAppTemplate from '../models/WhatsAppTemplate.js';
 
 /* CREATE */
 export const createTemplate = async (req, res) => {
