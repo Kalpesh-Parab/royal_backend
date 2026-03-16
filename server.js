@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 import serviceRoutes from './routes/serviceRoutes.js';
 import authRoutes from './routes/authRoutes.js';
-import invoiceRoutes from "./routes/invoiceRoutes.js";
+import invoiceRoutes from './routes/invoiceRoutes.js';
 import whatsappTemplateRoutes from './routes/whatsappTemplateRoutes.js';
 
 dotenv.config();
@@ -16,11 +16,20 @@ app.use(cors());
 app.use(express.json());
 app.use('/api/services', serviceRoutes);
 app.use('/auth', authRoutes);
-app.use("/api/invoices", invoiceRoutes);
+app.use('/api/invoices', invoiceRoutes);
 app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
 
 app.get('/', (req, res) => {
   res.send('Royal Service Point backend is live 🚀');
+});
+
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'OK',
+    service: 'Royal Service Point Backend',
+    uptime: process.uptime(),
+    timestamp: new Date(),
+  });
 });
 
 const PORT = process.env.PORT || 5000;
