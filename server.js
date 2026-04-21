@@ -6,6 +6,7 @@ import serviceRoutes from './routes/serviceRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import whatsappTemplateRoutes from './routes/whatsappTemplateRoutes.js';
+import expenseRoutes from './routes/expenseRoutes.js';
 
 dotenv.config();
 connectDB();
@@ -18,6 +19,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/auth', authRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/whatsapp-templates', whatsappTemplateRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 app.get('/', (req, res) => {
   res.send('Royal Service Point backend is live 🚀');
